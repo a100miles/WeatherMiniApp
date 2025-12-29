@@ -1,25 +1,28 @@
 const dotenv = require('dotenv');
 const express = require('express');
+const app = express();
+const port = 3000;
+const fs = require('fs');
 dotenv.config();
 
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
-const app = express();
-const port = 3000;
 const CITY = "Astana";
 const ADDRESS = "Prospekt Mangilik Yel., Astana 020000"
 const API_KEY = process.env.OPENWEATHER_API;
 const URL = "https://api.openweathermap.org/data/2.5/weather";
 const {Client} = require("@googlemaps/google-maps-services-js");
+const { error } = require('console');
 const client = new Client({});
 const GOOGLE_API_KEY = process.env.GOOGLE_MAPS_KEY;
+
+app.use(express.urlencoded({extended: true}));
 
 async function getWeatherByCity(city) {
     const params = new URLSearchParams({
         q: city,
         appid: API_KEY,
         units: "metric",
-        humidity: 
     });
 
     const response = await fetch(`${URL}?${params.toString()}`);
@@ -32,7 +35,6 @@ async function getWeatherByCity(city) {
     console.log(`Weather in ${data.name}`);
     console.log(`Temperature: ${data.main.temp} °C`);
     console.log(`Feels like: ${data.main.feels_like} °C`);
-    console.log(`Description: ${data.main.}`)
 }
 
 async function getMapByCity(address) {
@@ -49,5 +51,19 @@ async function getMapByCity(address) {
     } 
 }
 
-getWeatherByCity(CITY);
-getMapByCity(ADDRESS)
+app.get('/', (req, res) => {
+    fs.readFile('/templates/index.html', 'utf-8', (error, data) =>{
+        if (error) {
+            return res.status(404).send('File not found');
+        }
+        res.send(data);
+    });
+});
+
+app.listen(port, ()=>{
+    console.log("Server running on http://localhost:3000");
+});
+
+
+// getWeatherByCity(CITY);
+// getMapByCity(ADDRESS)
