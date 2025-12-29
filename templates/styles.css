@@ -1,0 +1,11 @@
+html {
+    font-family: "Google Sans", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 600;
+    font-style: normal;
+}
+
+body {
+    margin: 10px;
+    padding: 30px;
+}
