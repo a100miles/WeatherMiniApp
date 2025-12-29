@@ -7,7 +7,6 @@ dotenv.config();
 
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
-// const CITY = "Astana";
 // const ADDRESS = "Prospekt Mangilik Yel., Astana 020000"
 const API_KEY = process.env.OPENWEATHER_API;
 const URL = "https://api.openweathermap.org/data/2.5/weather";
@@ -32,9 +31,7 @@ async function getWeatherByCity(city) {
     }
 
     const data = await response.json();
-    // console.log(`Weather in ${data.name}`);
-    // console.log(`Temperature: ${data.main.temp} °C`);
-    // console.log(`Feels like: ${data.main.feels_like} °C`);
+
     return {
             city: data.name,
             temp: data.main.temp,
@@ -86,7 +83,7 @@ app.post('/weather', async (req, res) => {
             <title>1GID</title>
         </head>
         <body>
-            <ul class="nav nav-underline">
+            <ul class="nav nav-underline p-4">
                 <li class="nav-item">
                     <a class="nav-link active" aria-current="page" href="#">Weather</a>
                 </li>
@@ -115,7 +112,3 @@ app.post('/weather', async (req, res) => {
 app.listen(port, ()=>{
     console.log("Server running on http://localhost:3000");
 });
-
-
-// getWeatherByCity(CITY);
-// getMapByCity(ADDRESS)
