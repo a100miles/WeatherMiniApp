@@ -7,8 +7,8 @@ dotenv.config();
 
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
-const CITY = "Astana";
-const ADDRESS = "Prospekt Mangilik Yel., Astana 020000"
+// const CITY = "Astana";
+// const ADDRESS = "Prospekt Mangilik Yel., Astana 020000"
 const API_KEY = process.env.OPENWEATHER_API;
 const URL = "https://api.openweathermap.org/data/2.5/weather";
 const {Client} = require("@googlemaps/google-maps-services-js");
@@ -32,9 +32,16 @@ async function getWeatherByCity(city) {
     }
 
     const data = await response.json();
-    console.log(`Weather in ${data.name}`);
-    console.log(`Temperature: ${data.main.temp} °C`);
-    console.log(`Feels like: ${data.main.feels_like} °C`);
+    // console.log(`Weather in ${data.name}`);
+    // console.log(`Temperature: ${data.main.temp} °C`);
+    // console.log(`Feels like: ${data.main.feels_like} °C`);
+    return {
+            city: data.name,
+            temp: data.main.temp,
+            feelsLike: data.main.feels_like,
+            description: data.weather[0].description
+    };
+    
 }
 
 async function getMapByCity(address) {
@@ -49,15 +56,60 @@ async function getMapByCity(address) {
     if (response.status === 200) {
         console.log(response.data.results[0].geometry.location);
     } 
+    return response;
 }
 
 app.get('/', (req, res) => {
-    fs.readFile('/templates/index.html', 'utf-8', (error, data) =>{
+    fs.readFile('./templates/index.html', 'utf-8', (error, data) =>{
         if (error) {
             return res.status(404).send('File not found');
         }
         res.send(data);
     });
+});
+
+app.post('/weather', async (req, res) => {
+    const city = req.body.city;
+    const weather = await getWeatherByCity(city);
+
+    res.send(`
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght,GRAD@0,17..18,600,-50..200;1,17..18,600,-50..200&display=swap" rel="stylesheet">
+            <link rel="stylesheet" href="styles.css">
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+            <title>1GID</title>
+        </head>
+        <body>
+            <ul class="nav nav-underline">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="#">Weather</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Map</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">News</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Daily Facts</a>
+                </li>
+            </ul>
+
+            <div class="container mt-5">
+                <h1 class="fw-bolder">Weather in ${weather.city}</h1>
+                <p class="fw-medium">Temperature: ${weather.temp} °C</p>
+                <p class="fw-medium">Feels-like: ${weather.feelsLike} °C</p>
+                <p class="fw-medium">${weather.description}</p>
+            </div>
+        </body>
+        </html>
+        `)
 });
 
 app.listen(port, ()=>{
