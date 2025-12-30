@@ -36,24 +36,23 @@ async function getWeatherByCity(city) {
             city: data.name,
             temp: data.main.temp,
             feelsLike: data.main.feels_like,
-            description: data.weather[0].description
+            description: data.weather[0].description,
+            humidity: data.main.humidity,
+            pressure: data.main.pressure,
+            icon: data.weather[0].icon,
+            coordinates: {
+                lat: data.coord.lat,
+                lon: data.coord.lon,
+            },
+            windSpeed: data.wind.speed,
+            countryCode: data.sys.country,
+            rainLast3h: data.rain ? data.rain["3h"] : 0
     };
     
 }
 
-async function getMapByCity(address) {
-    const response = await client.geocode({
-        params: {
-            address: address,
-            key: GOOGLE_API_KEY,
-        },
-        timeout: 1000,
-    });
-
-    if (response.status === 200) {
-        console.log(response.data.results[0].geometry.location);
-    } 
-    return response;
+async function getMapByCity(lat, lon) {
+    return `https://www.google.com/maps?q=${lat},${lon}&output=embed`;
 }
 
 app.get('/', (req, res) => {
@@ -66,47 +65,72 @@ app.get('/', (req, res) => {
 });
 
 app.post('/weather', async (req, res) => {
-    const city = req.body.city;
-    const weather = await getWeatherByCity(city);
+    try {
+        const city = req.body.city;
+        const weather = await getWeatherByCity(city);
+        const mapUrl = await getMapByCity(weather.coordinates.lat, weather.coordinates.lon);
 
-    res.send(`
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <link rel="preconnect" href="https://fonts.googleapis.com">
-            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-            <link href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght,GRAD@0,17..18,600,-50..200;1,17..18,600,-50..200&display=swap" rel="stylesheet">
-            <link rel="stylesheet" href="styles.css">
-            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-            <title>1GID</title>
-        </head>
-        <body>
-            <ul class="nav nav-underline p-4">
-                <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="#">Weather</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Map</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">News</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Daily Facts</a>
-                </li>
-            </ul>
+        res.send(`
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <link rel="preconnect" href="https://fonts.googleapis.com">
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                <link href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght,GRAD@0,17..18,600,-50..200;1,17..18,600,-50..200&display=swap" rel="stylesheet">
+                <link rel="stylesheet" href="styles.css">
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+                <title>1GID</title>
+            </head>
+            <body class="text-bg-dark">
+                <ul class="nav nav-underline p-4">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="#">Weather</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Map</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">News</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Daily Facts</a>
+                    </li>
+                </u>
 
-            <div class="container mt-5">
-                <h1 class="fw-bolder">Weather in ${weather.city}</h1>
-                <p class="fw-medium">Temperature: ${weather.temp} °C</p>
-                <p class="fw-medium">Feels-like: ${weather.feelsLike} °C</p>
-                <p class="fw-medium">${weather.description}</p>
-            </div>
-        </body>
-        </html>
-        `)
+                <div class="container mt-5">
+                    <div class="row">
+                        <div class="col">
+                            <h1 class="fw-bolder">Weather in ${weather.city} <img src="https://openweathermap.org/img/wn/${weather.icon}@2x.png"></h1>
+                            <p class="fw-medium">Temperature: ${weather.temp} °C</p>
+                            <p class="fw-medium">Feels-like: ${weather.feelsLike} °C</p>
+                            <p class="fw-medium">Humidity: ${weather.humidity}</p>
+                            <p class="fw-medium">Pressure: ${weather.pressure}</p>
+                            <p class="fw-medium">Rain volume for the last 3 hours: ${weather.rainLast3h}</p>
+                            <p class="fw-medium">Coordinates: ${weather.coordinates}</p>
+                            <p class="fw-medium">Country code: ${weather.countryCode}</p>
+                            <p class="fw-medium">${weather.description}</p>
+                        </div>
+                        <div class="col">
+                            <iframe
+                                width="600"
+                                height="400"
+                                src="${mapUrl}"
+                                style="border:0;"
+                                allowfullscreen=""
+                                loading="lazy">
+                            </iframe>
+                        </div>
+                    </div>
+
+                </div>
+            </body>
+            </html>
+            `);
+        } catch (error) {
+            res.status(500).send(error.message);
+        }
 });
 
 app.listen(port, ()=>{
