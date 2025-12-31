@@ -108,106 +108,154 @@ app.post('/weather', async (req, res) => {
     try {
         const city = req.body.city;
         const weather = await getWeatherByCity(city);
-        const mapUrl = await getMapByCity(
-            weather.coordinates.lat, 
-            weather.coordinates.lon);
+        const mapUrl = await getMapByCity(weather.coordinates.lat, weather.coordinates.lon);
         const news = await getNewsByCountry(weather.countryCode);
         const trivia = await getMovieTrivia();
 
-
         res.send(`
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <link rel="preconnect" href="https://fonts.googleapis.com">
-                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-                <link href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght,GRAD@0,17..18,600,-50..200;1,17..18,600,-50..200&display=swap" rel="stylesheet">
-                <link rel="stylesheet" href="styles.css">
-                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-                <title>1GID</title>
-            </head>
-            <body class="text-bg-dark">
-                <ul class="nav p-4">
-                    <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="#">1GID</a>
-                    </li>
-                </ul>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1GID | ${weather.city}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        .weather-icon {
+            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
+        }
+        .card-custom {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            transition: transform 0.3s ease;
+        }
+        .card-custom:hover {
+            transform: translateY(-5px);
+        }
+        .nav-brand {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        .map-container {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-dark bg-opacity-50 backdrop-blur">
+        <div class="container">
+            <a class="navbar-brand nav-brand" href="/">1GID</a>
+            <a href="/" class="btn btn-outline-light rounded-pill"><i class="bi bi-house"></i> Home</a>
+        </div>
+    </nav>
 
-                <div class="container mt-5">
-                    <div class="row">
-                        <div class="col">
-                            <h1 class="fw-bolder">Weather in ${weather.city} <img src="https://openweathermap.org/img/wn/${weather.icon}@2x.png"></h1>
-                            <p class="fw-medium">Temperature: ${weather.temp} °C</p>
-                            <p class="fw-medium">Feels-like: ${weather.feelsLike} °C</p>
-                            <p class="fw-medium">Humidity: ${weather.humidity}</p>
-                            <p class="fw-medium">Pressure: ${weather.pressure}</p>
-                            <p class="fw-medium">Rain volume for the last 3 hours: ${weather.rainLast3h}</p>
-                            <p class="fw-medium">Coordinates: ${weather.coordinates}</p>
-                            <p class="fw-medium">Country code: ${weather.countryCode}</p>
-                            <p class="fw-medium">${weather.description}</p>
-                        </div>
-                        <div class="col">
-                            <iframe
-                                width="600"
-                                height="400"
-                                src="${mapUrl}"
-                                style="border:0;"
-                                allowfullscreen=""
-                                loading="lazy">
-                            </iframe>
+    <div class="container my-5">
+        <!-- Weather + Map Row -->
+        <div class="row g-5 mb-5">
+            <div class="col-lg-6">
+                <div class="card-custom shadow-lg p-5 h-100">
+                    <div class="d-flex align-items-center mb-4">
+                        <img src="https://openweathermap.org/img/wn/${weather.icon}@4x.png" alt="${weather.description}" class="weather-icon me-3" style="width: 100px;">
+                        <div>
+                            <h1 class="display-5 fw-bold mb-0">${weather.city}, ${weather.countryCode}</h1>
+                            <p class="text-capitalize fs-4 text-white-50">${weather.description}</p>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col">
-                            <h4 class="fw-bold m-3">Entertainment News</h4>
-
-                            ${news.map(n => `
-                                <div class="card text-bg-dark mb-3">
-                                    <div class="card-body">
-                                        <h6 class="card-title">${n.title}</h6>
-                                        <p class="card-text small">${n.description ?? ""}</p>
-                                        <a href="${n.url}" target="_blank"
-                                            class="btn btn-sm btn-outline-light">
-                                            Read more (${n.source})
-                                        </a>
-                                    </div>
-                                </div>
-                            `).join("")}
+                    <div class="row text-center text-lg-start">
+                        <div class="col-6 col-lg-12">
+                            <h2 class="display-4 fw-bold">${weather.temp}°C</h2>
+                            <p class="text-white-50">Feels like ${weather.feelsLike}°C</p>
                         </div>
-                    </div>
-                    <div class="row mt-4">
-                        <div class="col">
-                            <h4 class="fw-bold m-3">🎬 Movie Trivia</h4>
-                                                
-                            ${trivia.map((t, i) => `
-                                <div class="card text-bg-dark mb-3">
-                                    <div class="card-body">
-                                        <p class="fw-semibold">${i + 1}. ${t.question}</p>
-                            
-                                        ${t.answers.map(a => `
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="q${i}">
-                                                <label class="form-check-label">${a}</label>
-                                            </div>
-                                        `).join("")}
-                                        
-                                        <p class="small text-success mt-2">
-                                            Correct answer: ${t.correct}
-                                        </p>
-                                    </div>
-                                </div>
-                            `).join("")}
+                        <div class="col-6 col-lg-12">
+                            <ul class="list-unstyled fs-5">
+                                <li><i class="bi bi-droplet"></i> Humidity: ${weather.humidity}%</li>
+                                <li><i class="bi bi-speedometer2"></i> Pressure: ${weather.pressure} hPa</li>
+                                <li><i class="bi bi-wind"></i> Wind: ${weather.windSpeed} m/s</li>
+                                ${weather.rainLast3h > 0 ? `<li><i class="bi bi-cloud-rain"></i> Rain (3h): ${weather.rainLast3h} mm</li>` : ''}
+                            </ul>
                         </div>
                     </div>
                 </div>
-            </body>
-            </html>
-            `);
-        } catch (error) {
-            res.status(500).send(error.message);
-        }
+            </div>
+
+            <div class="col-lg-6">
+                <div class="map-container">
+                    <iframe
+                        width="100%"
+                        height="450"
+                        src="${mapUrl}"
+                        style="border:0;"
+                        allowfullscreen=""
+                        loading="lazy">
+                    </iframe>
+                </div>
+            </div>
+        </div>
+
+        <!-- News -->
+        <h3 class="mb-4"><i class="bi bi-newspaper me-2"></i>Entertainment News</h3>
+        <div class="row g-4 mb-5">
+            ${news.map(n => `
+                <div class="col-md-4">
+                    <div class="card-custom shadow h-100 p-4">
+                        <h5 class="fw-semibold">${n.title}</h5>
+                        <p class="small text-white-50">${n.description || 'No description available.'}</p>
+                        <a href="${n.url}" target="_blank" class="btn btn-outline-light btn-sm mt-auto">
+                            Read more <i class="bi bi-box-arrow-up-right"></i>
+                        </a>
+                    </div>
+                </div>
+            `).join("")}
+        </div>
+
+        <!-- Movie Trivia -->
+        <h3 class="mb-4"><i class="bi bi-film me-2"></i>Movie Trivia Challenge</h3>
+        <div class="row g-4">
+            ${trivia.map((t, i) => `
+                <div class="col-lg-6">
+                    <div class="card-custom shadow p-4">
+                        <p class="fw-semibold fs-5">${i + 1}. ${t.question}</p>
+                        <div class="mt-3">
+                            ${t.answers.map(a => `
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="q${i}" id="q${i}_${a}">
+                                    <label class="form-check-label" for="q${i}_${a}">${a}</label>
+                                </div>
+                            `).join("")}
+                        </div>
+                        <div class="mt-3 p-3 bg-success bg-opacity-20 rounded">
+                            <small class="text-success fw-semibold">Correct: ${t.correct}</small>
+                        </div>
+                    </div>
+                </div>
+            `).join("")}
+        </div>
+    </div>
+</body>
+</html>
+        `);
+    } catch (error) {
+        res.status(500).send(`
+            <!DOCTYPE html>
+            <html><body class="bg-dark text-white text-center p-5">
+                <h1>Error</h1>
+                <p>${error.message}</p>
+                <a href="/" class="btn btn-light mt-3">Back to home</a>
+            </body></html>
+        `);
+    }
 });
 
 app.listen(port, ()=>{
