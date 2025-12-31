@@ -258,6 +258,63 @@ app.post('/weather', async (req, res) => {
     }
 });
 
+//rest api testing
+app.use(express.json()); 
+
+app.get('/api/weather', async (req, res) => {
+    const city = req.query.city;
+    if (!city) {
+        return res.status(400).json({ error: "Parameter 'city' is required" });
+    }
+    try {
+        const weather = await getWeatherByCity(city);
+        res.status(200).json({
+            success: true,
+            data: weather
+        });
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            error: err.message || "Failed to fetch weather"
+        });
+    }
+});
+
+app.get('/api/news', async (req, res) => {
+    let countryCode = req.query.country || 'us';
+    if (countryCode.length !== 2) {
+        return res.status(400).json({ error: "Invalid country code. Use 2-letter ISO code." });
+    }
+    try {
+        const news = await getNewsByCountry(countryCode.toLowerCase());
+        res.status(200).json({
+            success: true,
+            data: news
+        });
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            error: err.message || "Failed to fetch news"
+        });
+    }
+});
+
+app.get('/api/trivia', async (req, res) => {
+    try {
+        const trivia = await getMovieTrivia();
+        res.status(200).json({
+            success: true,
+            data: trivia
+        });
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            error: err.message || "Failed to fetch trivia"
+        });
+    }
+});
+
+
 app.listen(port, ()=>{
     console.log("Server running on http://localhost:3000");
 });
