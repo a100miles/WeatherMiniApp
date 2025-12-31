@@ -11,21 +11,11 @@
     <title>1GID</title>
 </head>
 <body class="text-bg-dark">
-    <ul class="nav nav-underline p-4">
+    <ul class="nav p-4">
         <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="#">Weather</a>
+            <a class="nav-link active" aria-current="page" href="#">1GID</a>
         </li>
-        <li class="nav-item">
-            <a class="nav-link" href="#">Map</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="#">News</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="#">Daily Facts</a>
-        </li>
-    </u>
-
+    </u
     <div class="container mt-5">
         <div class="row">
             <div class="col">
@@ -50,7 +40,23 @@
                 </iframe>
             </div>
         </div>
-        
+        <div class="row">
+            <div class="col">
+                <h4 class="fw-bold m-3">Entertainment News</h
+                ${news.map(n => `
+                    <div class="card text-bg-dark mb-3">
+                        <div class="card-body">
+                            <h6 class="card-title">${n.title}</h6>
+                            <p class="card-text small">${n.description ?? ""}</p>
+                            <a href="${n.url}" target="_blank"
+                                class="btn btn-sm btn-outline-light">
+                                Read more (${n.source})
+                            </a>
+                        </div>
+                    </div>
+                `).join("")}
+            </div>
+        </div>
     </div>
 </body>
 </html>

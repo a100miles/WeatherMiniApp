@@ -58,6 +58,8 @@ async function getMapByCity(lat, lon) {
 }
 
 async function getNewsByCountry(countryCode) {
+    const query = countryCode === "KZ" ? "Kazakhstan" : countryCode;
+
     const response = await fetch(
         `https://newsapi.org/v2/top-headlines?country=${countryCode}&category=entertainment&pageSize=3&apiKey=${process.env.NEWS_API}`
     );
@@ -72,6 +74,26 @@ async function getNewsByCountry(countryCode) {
         source: article.source
     }));
 }
+
+async function getMovieTrivia() {
+    const response = await fetch(
+        "https://opentdb.com/api.php?amount=5&category=11"
+    );
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch trivia!");
+    }
+
+    const data = await response.json();
+
+    return data.results.map(q => ({
+        question: q.question,
+        correct: q.correct_answer,
+        answers: [...q.incorrect_answers, q.correct_answer]
+            .sort(() => Math.random() - 0.5)
+    }));
+}
+
 
 app.get('/', (req, res) => {
     fs.readFile('./templates/index.html', 'utf-8', (error, data) =>{
@@ -90,6 +112,8 @@ app.post('/weather', async (req, res) => {
             weather.coordinates.lat, 
             weather.coordinates.lon);
         const news = await getNewsByCountry(weather.countryCode);
+        const trivia = await getMovieTrivia();
+
 
         res.send(`
             <!DOCTYPE html>
@@ -148,6 +172,30 @@ app.post('/weather', async (req, res) => {
                                             class="btn btn-sm btn-outline-light">
                                             Read more (${n.source})
                                         </a>
+                                    </div>
+                                </div>
+                            `).join("")}
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col">
+                            <h4 class="fw-bold m-3">🎬 Movie Trivia</h4>
+                                                
+                            ${trivia.map((t, i) => `
+                                <div class="card text-bg-dark mb-3">
+                                    <div class="card-body">
+                                        <p class="fw-semibold">${i + 1}. ${t.question}</p>
+                            
+                                        ${t.answers.map(a => `
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="q${i}">
+                                                <label class="form-check-label">${a}</label>
+                                            </div>
+                                        `).join("")}
+                                        
+                                        <p class="small text-success mt-2">
+                                            Correct answer: ${t.correct}
+                                        </p>
                                     </div>
                                 </div>
                             `).join("")}
