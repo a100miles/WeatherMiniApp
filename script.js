@@ -11,6 +11,8 @@ const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch
 const API_KEY = process.env.OPENWEATHER_API;
 const URL = "https://api.openweathermap.org/data/2.5/weather";
 const {Client} = require("@googlemaps/google-maps-services-js");
+const News = require('newsapi');
+const NEWS_API = process.env.NEWS_API; 
 const { error } = require('console');
 const client = new Client({});
 const GOOGLE_API_KEY = process.env.GOOGLE_MAPS_KEY;
@@ -55,6 +57,22 @@ async function getMapByCity(lat, lon) {
     return `https://www.google.com/maps?q=${lat},${lon}&output=embed`;
 }
 
+async function getNewsByCountry(countryCode) {
+    const response = await fetch(
+        `https://newsapi.org/v2/top-headlines?country=${countryCode}&category=entertainment&pageSize=3&apiKey=${process.env.NEWS_API}`
+    );
+    if (!response.ok) {
+        throw new Error("Failed to fetch news!");
+    }
+    const data = await response.json();
+    return data.articles.map(article => ({
+        title: article.title,
+        description: article.description,
+        url: article.url,
+        source: article.source
+    }));
+}
+
 app.get('/', (req, res) => {
     fs.readFile('./templates/index.html', 'utf-8', (error, data) =>{
         if (error) {
@@ -68,7 +86,10 @@ app.post('/weather', async (req, res) => {
     try {
         const city = req.body.city;
         const weather = await getWeatherByCity(city);
-        const mapUrl = await getMapByCity(weather.coordinates.lat, weather.coordinates.lon);
+        const mapUrl = await getMapByCity(
+            weather.coordinates.lat, 
+            weather.coordinates.lon);
+        const news = await getNewsByCountry(weather.countryCode);
 
         res.send(`
             <!DOCTYPE html>
@@ -84,20 +105,11 @@ app.post('/weather', async (req, res) => {
                 <title>1GID</title>
             </head>
             <body class="text-bg-dark">
-                <ul class="nav nav-underline p-4">
+                <ul class="nav p-4">
                     <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="#">Weather</a>
+                        <a class="nav-link active" aria-current="page" href="#">1GID</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Map</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">News</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Daily Facts</a>
-                    </li>
-                </u>
+                </ul>
 
                 <div class="container mt-5">
                     <div class="row">
@@ -123,7 +135,24 @@ app.post('/weather', async (req, res) => {
                             </iframe>
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col">
+                            <h4 class="fw-bold m-3">Entertainment News</h4>
 
+                            ${news.map(n => `
+                                <div class="card text-bg-dark mb-3">
+                                    <div class="card-body">
+                                        <h6 class="card-title">${n.title}</h6>
+                                        <p class="card-text small">${n.description ?? ""}</p>
+                                        <a href="${n.url}" target="_blank"
+                                            class="btn btn-sm btn-outline-light">
+                                            Read more (${n.source})
+                                        </a>
+                                    </div>
+                                </div>
+                            `).join("")}
+                        </div>
+                    </div>
                 </div>
             </body>
             </html>

@@ -13,6 +13,7 @@
     "@googlemaps/google-maps-services-js": "^3.4.2",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "newsapi": "^2.4.1",
     "node-fetch": "^3.3.2"
   }
 }
